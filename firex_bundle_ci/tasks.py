@@ -16,7 +16,7 @@ logger = get_task_logger(__name__)
 #@flame("flow_tests_configs")
 #@flame("flow_tests_file", os.path.basename)
 def RunIntegrationTests(test_output_dir=None, flow_tests_configs=None, flow_tests_file=None, xunit_file_name=None,
-                        uid=None, coverage=True):
+                        uid=None, coverage=True, public=False):
     assert flow_tests_configs or flow_tests_file, 'Must provide at least flow_tests_configs or flow_tests_file'
     if not test_output_dir and uid:
         test_output_dir = os.path.join(uid.logs_dir, 'flow_test_logs')
@@ -36,6 +36,8 @@ def RunIntegrationTests(test_output_dir=None, flow_tests_configs=None, flow_test
         cmd += ['--xunit_file_name',  xunit_file_name]
     if coverage:
         cmd += ['--coverage']
+    if public:
+        cmd += ['--public_runs']
     start = datetime.datetime.now()
     try:
         completed = subprocess.run(cmd, capture_output=True, timeout=6*60, check=True, text=True)
@@ -65,7 +67,7 @@ def RunIntegrationTests(test_output_dir=None, flow_tests_configs=None, flow_test
 @app.task(bind=True)
 def RunAllIntegrationTests(self, uid,
                            integration_tests_dir='tests/integration_tests/',
-                           integration_tests_logs=None, coverage=True):
+                           integration_tests_logs=None, coverage=True, public=False):
     if not integration_tests_logs and uid:
         test_output_dir = os.path.join(uid.logs_dir, 'integration_tests_logs')
 
@@ -81,6 +83,7 @@ def RunAllIntegrationTests(self, uid,
                                                     flow_tests_file=test_config_filepath,
                                                     test_output_dir=test_config_output_dir,
                                                     xunit_file_name=xunit_file_name,
+                                                    public=public,
                                                     coverage=coverage))
     if parallel_tasks:
         self.enqueue_in_parallel(parallel_tasks)
