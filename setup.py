@@ -11,6 +11,7 @@ setup(name='firex-bundle-ci',
       zip_safe=True,
       install_requires=[
           "firexapp",
-	  "lxml",
-	  "xunitmerge",
+            "lxml",
+            "xunitmerge",
+            "unittest-xml-reporting"
       ],)
