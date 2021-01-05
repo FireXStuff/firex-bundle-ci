@@ -15,12 +15,12 @@ default:
     - python -m venv venv
     - source venv/bin/activate
     - pip install --upgrade pip
-
+    - pip install --upgrade firexbuilder
+    
 build:
   image: firexstuff/firex-alpine-build
   stage: build
   script:
-    - pip install --upgrade firexbuilder
     - firex-build build
   artifacts:
     paths:
