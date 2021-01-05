@@ -8,14 +8,15 @@ from firexapp.common import silent_mkdir
 import lxml.etree as et
 from firexkit.result import get_results
 from xunitmerge import merge_trees
+from firexkit.task import flame
 
 
 logger = get_task_logger(__name__)
 
 
 @app.task(returns='flow_test_run_time')
-#@flame("flow_tests_configs")
-#@flame("flow_tests_file", os.path.basename)
+@flame("flow_tests_configs")
+@flame("flow_tests_file", os.path.basename)
 def RunIntegrationTests(test_output_dir=None, flow_tests_configs=None, flow_tests_file=None, xunit_file_name=None,
                         uid=None, coverage=True, public_runs=False):
     assert flow_tests_configs or flow_tests_file, 'Must provide at least flow_tests_configs or flow_tests_file'
