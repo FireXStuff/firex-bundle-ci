@@ -1,7 +1,9 @@
+import versioneer
 from setuptools import setup
 
 setup(name='firex-bundle-ci',
-      version='0.1.',
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
       description='FireX CI services',
       url='https://github.com/FireXStuff/firex-bundle-ci.git',
       author='Core FireX Team',

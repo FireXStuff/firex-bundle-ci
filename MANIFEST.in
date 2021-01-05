@@ -1,1 +1,3 @@
-include LICENSE
+include LICENSE BUILD
+include versioneer.py
+include firex_bundle_ci/_version.py
