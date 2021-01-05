@@ -11,6 +11,7 @@ stages:
   - upload
 
 default:
+  image: firexstuff/firex-alpine-build
   before_script:
     - python -m venv venv
     - source venv/bin/activate
@@ -18,7 +19,6 @@ default:
     - pip install --upgrade firexbuilder
     
 build:
-  image: firexstuff/firex-alpine-build
   stage: build
   script:
     - firex-build build
