@@ -1,0 +1,40 @@
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+stages:
+  - build
+  - upload
+
+default:
+  before_script:
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install --upgrade pip
+    - pip install --upgrade firexbuilder
+
+build:
+  image: firexstuff/firex-alpine-build
+  stage: build
+  before_script:
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install --upgrade pip
+    - pip install --upgrade firexbuilder
+  script:
+    - firex-build build
+  artifacts:
+    paths:
+      - dist/
+        
+upload-pkg:
+  stage: upload
+  script: 
+    - pip install keyrings.alt
+    - firex-build upload_pip
+  only:
+    - tags
