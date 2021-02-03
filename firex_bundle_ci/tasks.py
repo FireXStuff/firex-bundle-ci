@@ -1,15 +1,16 @@
+import subprocess
+
 from firexapp.engine.celery import app
 from firexapp.testing.config_base import discover_tests
 from celery.utils.log import get_task_logger
 import datetime
 import os
-import subprocess
+from firexapp import firex_subprocess
 from firexapp.common import silent_mkdir
 import lxml.etree as et
 from firexkit.result import get_results
 from xunitmerge import merge_trees
 from firexkit.task import flame
-
 
 logger = get_task_logger(__name__)
 
@@ -23,7 +24,7 @@ def RunIntegrationTests(test_output_dir=None, flow_tests_configs=None, flow_test
     if not test_output_dir and uid:
         test_output_dir = os.path.join(uid.logs_dir, 'flow_test_logs')
 
-    #if test_output_dir:
+    # if test_output_dir:
     #    self.send_flame_html(test_logs=get_link(get_firex_viewer_url(test_output_dir), 'Test Logs'))
 
     cmd = ['flow_tests']
@@ -35,15 +36,15 @@ def RunIntegrationTests(test_output_dir=None, flow_tests_configs=None, flow_test
     if flow_tests_file:
         cmd += ['--tests', flow_tests_file]
     if xunit_file_name:
-        cmd += ['--xunit_file_name',  xunit_file_name]
+        cmd += ['--xunit_file_name', xunit_file_name]
     if coverage:
         cmd += ['--coverage']
     if public_runs:
         cmd += ['--public_runs']
     start = datetime.datetime.now()
     try:
-        completed = subprocess.run(cmd, capture_output=True, timeout=6*60, check=True, text=True)
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        completed = firex_subprocess.run(cmd, capture_output=True, timeout=6 * 60, check=True, text=True)
+    except (firex_subprocess.CommandFailed, subprocess.TimeoutExpired) as e:
         # TimeoutExpired doesn't respect text=True, so we need to decode the output
         stdout = e.stdout
         stderr = e.stderr
@@ -76,7 +77,7 @@ def RunTests(self, uid):
 
     integration_tests_xunits, integration_tests_coverage_dats = get_results(it_promise,
                                                                             return_keys=('integration_tests_xunits',
-                                                                                        'integration_tests_coverage_dats'))
+                                                                                         'integration_tests_coverage_dats'))
 
     xunit_result_files = [unit_tests_xunit] + integration_tests_xunits
     coverage_files = [unit_tests_coverage_dat] + integration_tests_coverage_dats
@@ -92,6 +93,8 @@ def RunAllIntegrationTests(self, uid,
                            integration_tests_logs=None, coverage=True, public_runs=False):
     if not integration_tests_logs and uid:
         test_output_dir = os.path.join(uid.logs_dir, 'integration_tests_logs')
+    else:
+        test_output_dir = integration_tests_logs
 
     parallel_tasks = []
     integration_tests_xunits = []
@@ -124,7 +127,7 @@ def GenerateHtmlCoverage(uid, coverage_dat_file):
     assert os.path.exists(coverage_dat_file), f'{coverage_dat_file} does not exist'
     env = os.environ.copy()
     env['COVERAGE_FILE'] = coverage_dat_file
-    subprocess.run(['coverage', 'html', '--title', 'Code Coverage'], cwd=uid.logs_dir, env=env, check=True)
+    firex_subprocess.run(['coverage', 'html', '--title', 'Code Coverage'], cwd=uid.logs_dir, env=env, check=True)
     coverge_index = os.path.abspath(os.path.join(uid.logs_dir, 'htmlcov/index.html'))
     if os.path.exists(coverge_index):
         logger.print(f'View Coverage at: {coverge_index}')
@@ -137,7 +140,7 @@ def AggregateCoverage(uid, coverage_files):
     aggregated_coverage_dat = os.path.join(uid.logs_dir, 'aggregated_coverage.dat')
     env = os.environ.copy()
     env['COVERAGE_FILE'] = aggregated_coverage_dat
-    subprocess.run(['coverage', 'combine'] + coverage_files, check=True, cwd=uid.logs_dir, env=env)
+    firex_subprocess.run(['coverage', 'combine'] + coverage_files, check=True, cwd=uid.logs_dir, env=env)
     if os.path.exists(aggregated_coverage_dat):
         return aggregated_coverage_dat
 
@@ -156,7 +159,7 @@ def CollectXunits(uid, integration_test_logs=None):
 
 # noinspection PyPep8Naming
 @app.task(returns='aggregated_xunit_results')
-#@flame('xunit_results', lambda location: get_link(get_firex_viewer_url(location), "xunit report"))
+# @flame('xunit_results', lambda location: get_link(get_firex_viewer_url(location), "xunit report"))
 def AggregateXunit(uid, xunit_result_files):
     if not len(xunit_result_files):
         raise Exception("No xml results files provided")
@@ -175,7 +178,7 @@ def AggregateXunit(uid, xunit_result_files):
             # noinspection PyProtectedMember
             xml_tree._setroot(new_root)
 
-        #strip_system_out(xml_tree)
+        # strip_system_out(xml_tree)
         xml_tree.getroot().attrib.clear()  # merge_trees can barf of float point 'time'
         xml_trees.append(xml_tree)
 
@@ -205,7 +208,7 @@ def RunUnitTests(uid, unit_tests_dir='tests/unit_tests'):
     env = os.environ.copy()
     env['COVERAGE_FILE'] = unit_tests_coverage_dat
     print('--> Run unit-tests and coverage')
-    subprocess.run(['coverage', 'run', '-m', 'xmlrunner', 'discover', '-s', unit_tests_dir, '-p', '*_tests.py',
-                    '--output-file', unit_tests_xunit],
-                   env=env, check=True)
+    firex_subprocess.run(['coverage', 'run', '-m', 'xmlrunner', 'discover', '-s', unit_tests_dir, '-p', '*_tests.py',
+                          '--output-file', unit_tests_xunit],
+                         env=env, check=True)
     return unit_tests_xunit, unit_tests_coverage_dat
