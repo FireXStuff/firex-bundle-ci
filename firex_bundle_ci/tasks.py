@@ -115,7 +115,9 @@ def RunAllIntegrationTests(self, uid,
                                                     public_runs=public_runs,
                                                     coverage=coverage))
     if parallel_tasks:
-        self.enqueue_in_parallel(parallel_tasks)
+        promises = self.enqueue_in_parallel(parallel_tasks)
+        if not all([promise.successful() for promise in promises]):
+            raise AssertionError('Some tests failed')
     else:
         raise AssertionError('No Integrations tests to run')
 
