@@ -18,4 +18,5 @@ setup(name='firex-bundle-ci',
           "xunitmerge",
           "unittest-xml-reporting"
       ],
+      entry_points={'firex.bundles': 'firex-bundle-ci = firex_bundle_ci'},
       )
