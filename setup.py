@@ -14,6 +14,7 @@ setup(name='firex-bundle-ci',
       install_requires=[
           "firexapp",
           "firex-keeper",
+          "firex-flame",
           "lxml",
           "xunitmerge",
           "unittest-xml-reporting"
