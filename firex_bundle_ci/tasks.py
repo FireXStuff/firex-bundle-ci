@@ -11,6 +11,7 @@ import lxml.etree as et
 from firexkit.result import get_results
 from xunitmerge import merge_trees
 from firexkit.task import flame
+from xunit_helper import parse_huge_xml
 
 logger = get_task_logger(__name__)
 
@@ -171,7 +172,7 @@ def AggregateXunit(uid, xunit_result_files):
         # load xml file
         if not os.path.isfile(xunit_file):
             raise FileNotFoundError(xunit_file)
-        xml_tree = et.parse(xunit_file)
+        xml_tree = parse_huge_xml(xunit_file)
 
         # handle cases where the root is testsuite not testsuites
         if xml_tree.getroot().tag == "testsuite":
