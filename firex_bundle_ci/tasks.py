@@ -90,7 +90,7 @@ def RunTests(self, uid):
 @app.task(bind=True, returns=('integration_tests_xunits', 'integration_tests_coverage_dats'))
 def RunAllIntegrationTests(self, uid,
                            integration_tests_dir='tests/integration_tests/',
-                           integration_tests_logs=None, coverage=True, public_runs=False):
+                           integration_tests_logs=None, coverage=True, public_runs=False, max_parallel_tests=15):
     if not integration_tests_logs and uid:
         test_output_dir = os.path.join(uid.logs_dir, 'integration_tests_logs')
     else:
@@ -115,7 +115,7 @@ def RunAllIntegrationTests(self, uid,
                                                     public_runs=public_runs,
                                                     coverage=coverage))
     if parallel_tasks:
-        promises = self.enqueue_in_parallel(parallel_tasks)
+        promises = self.enqueue_in_parallel(parallel_tasks, max_parallel_chains=max_parallel_tests)
         if not all([promise.successful() for promise in promises]):
             raise AssertionError('Some tests failed')
     else:
