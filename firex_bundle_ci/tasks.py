@@ -68,7 +68,7 @@ def RunIntegrationTests(test_output_dir=None, flow_tests_configs=None, flow_test
 
 
 @app.task(bind=True)
-def RunTests(self, uid):
+def RunUnitAndIntegrationTests(self, uid):
     ut_promise = self.enqueue_child(RunUnitTests.s(uid))
     it_promise = self.enqueue_child(RunAllIntegrationTests.s(uid))
     self.wait_for_children()
